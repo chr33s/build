@@ -1,0 +1,55 @@
+{
+  "variables": {
+    "version": "14.07"
+  },
+  "builders": [{
+    "type": "virtualbox-iso",
+    "vm_name": "alpine-{{user `version`}}-amd64",
+    "virtualbox_version_file": ".vbox_version",
+    "guest_additions_mode": "disable",
+    "boot_wait": "15s",
+    "boot_command": [
+      "<enter><wait>",
+      "passwd <<EOF<enter>tessel2<enter>tessel2<enter>EOF<enter>",
+      "sed -e '20,22c\\<enter>    option input ACCEPT\\<enter>    option output ACCEPT\\<enter>    option forward ACCEPT' /etc/config/firewall > /root/firewall.tmp<enter>",
+      "mv /root/firewall.tmp /etc/config/firewall<enter>",
+      "fsync /etc/config/firewall<enter>",
+      "sed -e '9,9c\\<enter>    option ifname eth1' /etc/config/network > /root/network.tmp<enter>",
+      "sed -e '17,17c\\<enter>    option ifname eth0' /root/network.tmp > /root/network.tmp2<enter>",
+      "mv /root/network.tmp2 /etc/config/network<enter>",
+      "fsync /etc/config/network<enter>",
+      "/etc/init.d/network restart<enter>",
+      "printf \"#!/bin/ash\\npoweroff\\n\" > /usr/bin/shutdown<enter>",
+      "chmod +x /usr/bin/shutdown<enter>"
+    ],
+    "vboxmanage": [
+      ["modifyvm", "{{.Name}}", "--nic1", "nat"],
+      ["modifyvm", "{{.Name}}", "--nic2", "none"],
+      ["modifyvm", "{{.Name}}", "--memory", "64"],
+      ["modifyvm", "{{.Name}}", "--cpus", "1"]      
+    ],
+    "iso_url": "https://downloads.openwrt.org/barrier_breaker/14.07/x86/generic/openwrt-x86-generic-combined-ext4.img.gz",
+    "iso_checksum": "3209aa3255b74726837e351908bbcd98",
+    "iso_checksum_type": "md5",
+    "ssh_username": "root",
+    "ssh_password": "arduino",
+    "ssh_wait_timeout": "300s",
+    "shutdown_command": "<wait5>poweroff<enter>"
+  }],  
+  "provisioners": [
+    {
+      "type": "shell",
+      "scripts": "openwrt/scripts.sh"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "override": {
+        "virtualbox": {
+          "output": "openwrt-{{user `version`}}-virtualbox.box"
+        }
+      }
+    }
+  ]
+}
