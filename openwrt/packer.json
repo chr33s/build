@@ -4,7 +4,7 @@
   },
   "builders": [{
     "type": "virtualbox-iso",
-    "vm_name": "alpine-{{user `version`}}-amd64",
+    "vm_name": "openwrt-{{user `version`}}-amd64",
     "virtualbox_version_file": ".vbox_version",
     "guest_additions_mode": "disable",
     "boot_wait": "15s",
